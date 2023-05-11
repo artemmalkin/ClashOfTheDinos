@@ -22,8 +22,9 @@
     <div id="gameScripts">
         <script src="js/images.js"></script>
         <script src="js/character.js"></script>
+        <script src="js/ui.js"></script>
         <script src="js/init.js"></script>
-        
+
         <script>
             function loadLanguageScript(lang) {
                 var script = document.createElement('script');
@@ -56,6 +57,8 @@
 
             canvasUI.width = canvas.width;
             canvasUI.height = canvas.height;
+
+            ui.draw(ctxUI, currentScene);
             //canvas.width = newWidth > 1280 ? 1280 : newWidth;
             //canvas.height = newHeight > 720 ? 720 : newHeight;
         }

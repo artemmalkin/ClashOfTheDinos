@@ -4,6 +4,7 @@ class Game {
         this.status = 1;
         this.lastUpdateTime = 0;
         this.frameDuration = 30;
+        this.originalFrameDuration = this.frameDuration;
 
         this.spawnpoint = {
             "player": { "x": 180, "y": 620 },
@@ -21,9 +22,8 @@ class Game {
     }
 
     continue() {
-        this.frameDuration = 30;
+        this.frameDuration = this.originalFrameDuration;
         this.status = 1;
-        //requestAnimationFrame(update);
     }
 
     stopUpdate() {
@@ -38,6 +38,8 @@ class Game {
 }
 
 let game = new Game();
+let ui = new UserInterface();
+let currentScene = "game";
 
 let sprites = {};
 let backgrounds = {};
@@ -66,13 +68,10 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phon
 
     document.addEventListener("touchend", function (event) {
         isMouseDown = false;
-        const touch = event.touches[0];
-        mousePosition.x = touch.clientX;
-        mousePosition.y = touch.clientY;
     });
 } else {
     document.addEventListener("mousedown", function (event) {
-        // Начало зажатия левой кнопки на мыши - ставим флаг isMouseDown в true
+        // Start pressing the left button on the mouse - set the MouseDown flag to true
         if (event.which === 1) {
             mousePosition.x = event.clientX;
             mousePosition.y = event.clientY;
@@ -81,7 +80,7 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phon
     });
 
     document.addEventListener("mousemove", function (event) {
-        // Перемещение курсора при зажатой ЛКМ
+        // Move cursor while holding LMB
         if (isMouseDown) {
             mousePosition.x = event.clientX;
             mousePosition.y = event.clientY;
@@ -89,7 +88,7 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phon
     });
 
     document.addEventListener("mouseup", function (event) {
-        // Отпускание курсора - ставим флаг isMouseDown в false
+        // Releasing the cursor - set the isMouseDown flag to false
         if (event.which === 1) {
             mousePosition.x = event.clientX;
             mousePosition.y = event.clientY;
@@ -107,28 +106,28 @@ function checkCollisions() {
             let dinoIndex = playerDinos.indexOf(dino)
 
             if (dinoIndex === 0) {
-                // Если динозавр крайний
+                // If the dinosaur is first
                 const dinoPlayerCollision = playerDinos[0].collision();
                 const dinoEnemyCollision = enemyDinos[0].collision();
                 if (dinoEnemyCollision.x < dinoPlayerCollision.x + dinoPlayerCollision.width) {
-                    // Если он дошёл до динозавра врага - Режим боя
+                    // If it reaches the enemy's dinosaur - Fight Mode
                     game.fightStatus = true;
                     playerDinos[0].setState("attacking");
                     enemyDinos[0].setState("attacking");
                 } else {
-                    // Если не дошёл - пусть идёт дальше
+                    // If he didn't make it, let him move on.
                     playerDinos[0].setState("walking");
                     enemyDinos[0].setState("walking");
                 }
             } else {
-                // Если не крайний - проверяем, дошёл ли до идущего перед ним динозавра
+                // If not the first one, we check if it has reached the dinosaur walking in front of it
                 const dinoPlayerCollision = playerDinos[dinoIndex].collision();
                 const NextDinoPlayerCollision = playerDinos[dinoIndex - 1].collision();
                 if (NextDinoPlayerCollision.x < dinoPlayerCollision.x + dinoPlayerCollision.width) {
-                    // Если дошёл - останавливаем динозавра
+                    // If reached - stop him
                     dino.setState("standing");
                 } else {
-                    // Если не дошёл - пусть идёт дальше
+                    // If he didn't make it, let him move on.
                     dino.setState("walking");
                 }
             }
@@ -142,14 +141,14 @@ function checkCollisions() {
             let dinoIndex = enemyDinos.indexOf(dino)
 
             if (dinoIndex !== 0) {
-                // Если не крайний - проверяем, дошёл ли до идущего перед ним динозавра
+                // If not the first one, we check if he has reached the dinosaur walking in front of him
                 const dinoEnemyCollision = enemyDinos[dinoIndex].collision();
                 const nextDinoEnemyCollision = enemyDinos[dinoIndex - 1].collision();
                 if (dinoEnemyCollision.x < nextDinoEnemyCollision.x + nextDinoEnemyCollision.width) {
-                    // Если дошёл - останавливаем динозавра
+                    // If he reached - stop him
                     dino.setState("standing");
                 } else {
-                    // Если не дошёл - пусть идёт дальше
+                    // If he didn't make it, let him move on.
                     dino.setState("walking");
                 }
             }
@@ -163,7 +162,7 @@ function checkCollisions() {
 
 function startGame() {
     resources.music.play()
-    sprites.victory = new spriteImage(resources.victory, 250, 40, 0, 0, 0, 0, 1)
+    sprites.victory = new spriteImage(resources.victory, 250, 40, 0, 0, 0, 0, 1, "victory")
     tileset.grass = new PatternImage(resources.tileset, 45, 16, 6, 0, 6, 0, canvas.height - 86, 20, "x");
     backgrounds.main = new BackgroundImage(resources.background, 320, 180, 9, 0, 0, 1.2);
     backgrounds.cave1 = new BackgroundImage(resources.background, 320, 180, 8, 0, 0);
@@ -174,6 +173,16 @@ function startGame() {
             "walking": { "frameRow": 4, "framesCount": 6, "frameDuration": 6 },
             "attacking": { "frameRow": 12, "framesCount": 7, "frameDuration": 6 },
             "standing": { "frameRow": 0, "framesCount": 3, "frameDuration": 6 }
+        },
+        "diplodocusSub": {
+            "walking": { "frameRow": 4, "framesCount": 6, "frameDuration": 8 },
+            "attacking": { "frameRow": 12, "framesCount": 7, "frameDuration": 8 },
+            "standing": { "frameRow": 0, "framesCount": 3, "frameDuration": 8 }
+        },
+        "diplodocusAdult": {
+            "walking": { "frameRow": 4, "framesCount": 6, "frameDuration": 12 },
+            "attacking": { "frameRow": 12, "framesCount": 7, "frameDuration": 12 },
+            "standing": { "frameRow": 0, "framesCount": 3, "frameDuration": 12 }
         },
     }
     game.characters = {
@@ -187,7 +196,7 @@ function startGame() {
         },
         "subadult": {
             "player": {
-                "diplodocus": () => new Character(resources.diplodocus_p, 64, 64, game.characterStates.diplodocus, game.spawnpoint.player.x - 100, game.spawnpoint.player.y - 190, 12, false, 15, 32, 2, 500, 250, 2500),
+                "diplodocus": () => new Character(resources.diplodocus_p, 64, 64, game.characterStates.diplodocusSub, game.spawnpoint.player.x - 100, game.spawnpoint.player.y - 190, 12, false, 15, 32, 2, 500, 250, 2500),
             },
             "enemy": {
 
@@ -195,7 +204,7 @@ function startGame() {
         },
         "adult": {
             "player": {
-                "diplodocus": () => new Character(resources.diplodocus_p, 64, 64, game.characterStates.diplodocus, game.spawnpoint.player.x - 300, game.spawnpoint.player.y - 810, 25, false, 15, 32, 1, 1000, 500, 5000),
+                "diplodocus": () => new Character(resources.diplodocus_p, 64, 64, game.characterStates.diplodocusAdult, game.spawnpoint.player.x - 300, game.spawnpoint.player.y - 810, 25, false, 15, 32, 1, 1000, 500, 5000),
             },
             "enemy": {
 
@@ -203,9 +212,13 @@ function startGame() {
         }
     }
 
+    ui.addScene("game", [sprites.victory], { "victory": () => { ui.scenes[currentScene].sprites[0].setActive(false); resizeCanvas(); } });
+    ui.startListener();
+    ui.draw(ctxUI, currentScene);
+
     playerDinos.push(game.characters.junior.player.diplodocus())
     playerDinos.push(game.characters.junior.player.diplodocus())
-    playerDinos.push(game.characters.subadult.player.diplodocus())
+    //playerDinos.push(game.characters.subadult.player.diplodocus())
     playerDinos.push(game.characters.adult.player.diplodocus())
 
     enemyDinos.push(game.characters.junior.enemy.diplodocus())
@@ -224,15 +237,15 @@ function startGame() {
 
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    backgrounds.main.drawDynamic(0.05);
-    tileset.grass.draw(20);
-    backgrounds.cave1.drawDynamic();
-    backgrounds.cave2.drawDynamic();
+    backgrounds.main.drawDynamic(ctx, 0.1);
+    tileset.grass.draw(ctx, 20);
+    backgrounds.cave1.drawDynamic(ctx);
+    backgrounds.cave2.drawDynamic(ctx);
 
     //sprites.victory.draw(ctxUI);
 
-    playerDinos.forEach(dino => dino.draw());
-    enemyDinos.forEach(dino => dino.draw());
+    playerDinos.forEach(dino => dino.draw(ctx));
+    enemyDinos.forEach(dino => dino.draw(ctx));
 
     fixedUpdate()
     if (game.status !== -1) {

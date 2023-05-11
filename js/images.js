@@ -8,15 +8,15 @@
         this.y = y;
         this.scale = scale;
     }
-    // drawDynamic и drawStatic повторяются, но это помогает улучшить производительность.
-    drawDynamic(speed = 1) {
+
+    drawDynamic(ctx, speed = 1) {
         const sy = this.frameRow * this.frameHeight;
 
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(this.image, 0, sy, this.frameWidth, this.frameHeight, this.x - game.cameraWorldPosition.x * speed, this.y - game.cameraWorldPosition.y * speed, canvas.width * this.scale, canvas.height * this.scale);
     }
 
-    drawStatic() {
+    drawStatic(ctx) {
         const sy = this.frameRow * this.frameHeight;
 
         ctx.imageSmoothingEnabled = false;
@@ -25,7 +25,7 @@
 }
 
 class spriteImage {
-    constructor(image, frameWidth, frameHeight, frameRow, frameCol, x, y, scale = 1) {
+    constructor(image, frameWidth, frameHeight, frameRow, frameCol, x, y, scale = 1, name = "unnamed") {
         this.image = image;
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
@@ -34,14 +34,22 @@ class spriteImage {
         this.x = x;
         this.y = y;
         this.scale = scale;
+        this.name = name;
+        this.isActive = true;
+    }
+
+    setActive(status = true) {
+        this.isActive = status;
     }
 
     draw(ctx) {
-        const sx = this.frameCol * this.frameWidth;
-        const sy = this.frameRow * this.frameHeight;
+        if (this.isActive) {
+            const sx = this.frameCol * this.frameWidth;
+            const sy = this.frameRow * this.frameHeight;
 
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(this.image, sx, sy, this.frameWidth, this.frameHeight, this.x, this.y, this.frameWidth * this.scale, this.frameHeight * this.scale);
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(this.image, sx, sy, this.frameWidth, this.frameHeight, this.x, this.y, this.frameWidth * this.scale, this.frameHeight * this.scale);
+        }
     }
 }
 
@@ -58,7 +66,7 @@ class PatternImage {
         this.y = y;
     }
 
-    draw(repeatCount, repeatAxis) {
+    draw(ctx, repeatCount, repeatAxis) {
         let n = 0;
 
         while (n < repeatCount) {

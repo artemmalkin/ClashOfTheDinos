@@ -44,7 +44,7 @@
         }
     }
 
-    draw() {
+    draw(ctx) {
         const now = Date.now();
         if (now - this.lastUpdateTime > this.frameDuration * game.frameDuration) {
             this.currentFrame = (this.currentFrame + 1) % this.framesCount;
@@ -57,11 +57,11 @@
 
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(this.image, sx, sy, this.frameWidth, this.frameHeight, posRelativeCam.x, posRelativeCam.y, this.scaledFrameWidth, this.scaledFrameHeight);
-        //this.drawCollisions()
+        //this.drawCollisions(ctx)
         //this.drawHp()
     }
 
-    drawCollisions() {
+    drawCollisions(ctx) {
         const collision = this.collision();
         ctx.beginPath();
         ctx.strokeStyle = "red";
