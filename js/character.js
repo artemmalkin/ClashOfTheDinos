@@ -1,5 +1,5 @@
 ﻿class Character {
-    constructor(image, frameWidth, frameHeight, states = {}, x, y, scale, isEnemy = false, collisionX, collisionWidth, hp = 100, attackDamage = 25, attackDuration = 2000) {
+    constructor(image, frameWidth, frameHeight, states = {}, x, y, scale, isEnemy = false, collisionX, collisionWidth, speed = 3, hp = 100, attackDamage = 25, attackDuration = 2000) {
         this.image = image;
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
@@ -19,8 +19,9 @@
         /*this.states = {
             "walking": { "frameRow": frameRow, "framesCount": framesCount, "frameDuration": frameDuration }
         };*/
-        this.state = "walking";
+        this.state = "";
 
+        this.speed = speed;
         this.hp = hp;
         this.attackDamage = attackDamage;
         this.attackDuration = attackDuration
@@ -29,13 +30,18 @@
         this.currentFrame = 0;
         this.lastUpdateTime = 0;
         this.frameDuration = states.frameDuration// * game.frameDuration; // время, которое каждый кадр должен оставаться на экране (в миллисекундах)
+
+        this.setState(this.state);
     }
 
     setState(stateName) {
-        this.frameRow = this.states[stateName].frameRow;
-        this.framesCount = this.states[stateName].framesCount;
-        this.frameDuration = this.states[stateName].frameDuration;
-        this.state = stateName;
+        if (stateName !== this.state) {
+            this.currentFrame = 0;
+            this.frameRow = this.states[stateName].frameRow;
+            this.framesCount = this.states[stateName].framesCount;
+            this.frameDuration = this.states[stateName].frameDuration;
+            this.state = stateName;
+        }
     }
 
     draw() {
@@ -52,6 +58,7 @@
         ctx.imageSmoothingEnabled = false;
         ctx.drawImage(this.image, sx, sy, this.frameWidth, this.frameHeight, posRelativeCam.x, posRelativeCam.y, this.scaledFrameWidth, this.scaledFrameHeight);
         //this.drawCollisions()
+        //this.drawHp()
     }
 
     drawCollisions() {
@@ -61,6 +68,16 @@
         ctx.lineWidth = 40;
         ctx.moveTo(collision.x, canvas.height)
         ctx.lineTo(collision.x + collision.width, canvas.height)
+        ctx.stroke();
+    }
+
+    drawHp() {
+        const collision = this.collision();
+        ctx.beginPath();
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 40;
+        ctx.moveTo(collision.x + collision.width / 2 - collision.width / 2 * this.hp / 2, canvas.height);
+        ctx.lineTo((collision.x + collision.width) / 2 + (collision.width / 2) * this.hp / 2, canvas.height);
         ctx.stroke();
     }
 }
