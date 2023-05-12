@@ -25,7 +25,7 @@
 }
 
 class spriteImage {
-    constructor(image, frameWidth, frameHeight, frameRow, frameCol, x, y, scale = 1, name = "unnamed") {
+    constructor(image, frameWidth, frameHeight, frameRow, frameCol, x, y, scale = 1) {
         this.image = image;
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
@@ -34,7 +34,6 @@ class spriteImage {
         this.x = x;
         this.y = y;
         this.scale = scale;
-        this.name = name;
         this.isActive = true;
     }
 

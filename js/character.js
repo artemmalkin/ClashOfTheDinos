@@ -16,9 +16,6 @@
         this.isEnemy = isEnemy;
         this.collision = () => ({ "x": collisionX * this.scale + this.PositionRelativeCamera().x, "width": collisionWidth * this.scale });
         this.states = states
-        /*this.states = {
-            "walking": { "frameRow": frameRow, "framesCount": framesCount, "frameDuration": frameDuration }
-        };*/
         this.state = "";
 
         this.speed = speed;

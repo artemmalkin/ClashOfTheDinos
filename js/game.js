@@ -6,14 +6,7 @@ class Game {
         this.frameDuration = 30;
         this.originalFrameDuration = this.frameDuration;
 
-        this.spawnpoint = {
-            "player": { "x": 180, "y": 620 },
-            "enemy": { "x": 4100, "y": 620 }
-        };
-        this.characterStates = {}
-        this.characters = {};
-        this.dinosMaxCount = 4;
-        this.fightStatus = false;
+        this.data = {};
     }
 
     pause() {
@@ -39,14 +32,11 @@ class Game {
 
 let game = new Game();
 let ui = new UserInterface();
-let currentScene = "game";
 
 let sprites = {};
 let backgrounds = {};
 let tileset = {};
 let mousePosition = { "x": 0, "y": 0 };
-
-
 let isMouseDown = false;
 
 if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i
@@ -111,7 +101,6 @@ function checkCollisions() {
                 const dinoEnemyCollision = enemyDinos[0].collision();
                 if (dinoEnemyCollision.x < dinoPlayerCollision.x + dinoPlayerCollision.width) {
                     // If it reaches the enemy's dinosaur - Fight Mode
-                    game.fightStatus = true;
                     playerDinos[0].setState("attacking");
                     enemyDinos[0].setState("attacking");
                 } else {
@@ -161,14 +150,25 @@ function checkCollisions() {
 
 
 function startGame() {
-    resources.music.play()
-    sprites.victory = new spriteImage(resources.victory, 250, 40, 0, 0, 0, 0, 1, "victory")
+    // init sprites
+    sprites.dinoItemActive = new spriteImage(resources.diplodocus_p, 64, 64, 8, 0, -180, 750, 8)
+    sprites.dinoItemDisactive = new spriteImage(resources.diplodocus_p, 64, 64, 8, 1, 600, 0, 8)
+
+    sprites.dinoItemDiplodocus = new spriteImage(resources.diplodocus_p, 26, 26, 0.9, 0.6, 0, 300, 7)
+
     tileset.grass = new PatternImage(resources.tileset, 45, 16, 6, 0, 6, 0, canvas.height - 86, 20, "x");
     backgrounds.main = new BackgroundImage(resources.background, 320, 180, 9, 0, 0, 1.2);
     backgrounds.cave1 = new BackgroundImage(resources.background, 320, 180, 8, 0, 0);
     backgrounds.cave2 = new BackgroundImage(resources.background, 320, 180, 12, canvas.width * 1.5, 0);
 
-    game.characterStates = {
+    // init data
+    game.data.spawnpoint = {
+        "player": { "x": 180, "y": 620 },
+        "enemy": { "x": 4100, "y": 620 }
+    };
+    game.data.dinosMaxCount = 4;
+
+    game.data.characterStates = {
         "diplodocus": {
             "walking": { "frameRow": 4, "framesCount": 6, "frameDuration": 6 },
             "attacking": { "frameRow": 12, "framesCount": 7, "frameDuration": 6 },
@@ -185,18 +185,18 @@ function startGame() {
             "standing": { "frameRow": 0, "framesCount": 3, "frameDuration": 12 }
         },
     }
-    game.characters = {
+    game.data.characters = {
         "junior": {
             "player": {
-                "diplodocus": () => new Character(resources.diplodocus_p, 64, 64, game.characterStates.diplodocus, game.spawnpoint.player.x, game.spawnpoint.player.y, 8, false, 15, 32),
+                "diplodocus": () => new Character(resources.diplodocus_p, 64, 64, game.data.characterStates.diplodocus, game.data.spawnpoint.player.x, game.data.spawnpoint.player.y, 8, false, 15, 32),
             },
             "enemy": {
-                "diplodocus": () => new Character(resources.diplodocus_e, 64, 64, game.characterStates.diplodocus, game.spawnpoint.enemy.x, game.spawnpoint.enemy.y, 8, true, 15, 32),
+                "diplodocus": () => new Character(resources.diplodocus_e, 64, 64, game.data.characterStates.diplodocus, game.data.spawnpoint.enemy.x, game.data.spawnpoint.enemy.y, 8, true, 15, 32),
             }
         },
         "subadult": {
             "player": {
-                "diplodocus": () => new Character(resources.diplodocus_p, 64, 64, game.characterStates.diplodocusSub, game.spawnpoint.player.x - 100, game.spawnpoint.player.y - 190, 12, false, 15, 32, 2, 500, 250, 2500),
+                "diplodocus": () => new Character(resources.diplodocus_p, 64, 64, game.data.characterStates.diplodocusSub, game.data.spawnpoint.player.x - 100, game.data.spawnpoint.player.y - 190, 12, false, 15, 32, 2, 500, 250, 2500),
             },
             "enemy": {
 
@@ -204,7 +204,7 @@ function startGame() {
         },
         "adult": {
             "player": {
-                "diplodocus": () => new Character(resources.diplodocus_p, 64, 64, game.characterStates.diplodocusAdult, game.spawnpoint.player.x - 300, game.spawnpoint.player.y - 810, 25, false, 15, 32, 1, 1000, 500, 5000),
+                "diplodocus": () => new Character(resources.diplodocus_p, 64, 64, game.data.characterStates.diplodocusAdult, game.data.spawnpoint.player.x - 300, game.data.spawnpoint.player.y - 810, 25, false, 15, 32, 1, 1000, 500, 5000),
             },
             "enemy": {
 
@@ -212,25 +212,26 @@ function startGame() {
         }
     }
 
-    ui.addScene("game", [sprites.victory], { "victory": () => { ui.scenes[currentScene].sprites[0].setActive(false); resizeCanvas(); } });
-    ui.startListener();
-    ui.draw(ctxUI, currentScene);
+    // init ui
+    ui.objects = [new Button(sprites.dinoItemActive, sprites.dinoItemActive, sprites.dinoItemDisactive, 500, 500, 0, 0, () => console.log("clicked"))]
+    ui.startEventListener(ctxUI);
+    ui.draw(ctxUI);
 
-    playerDinos.push(game.characters.junior.player.diplodocus())
-    playerDinos.push(game.characters.junior.player.diplodocus())
-    //playerDinos.push(game.characters.subadult.player.diplodocus())
-    playerDinos.push(game.characters.adult.player.diplodocus())
+    // temp
+    playerDinos.push(game.data.characters.junior.player.diplodocus())
+    playerDinos.push(game.data.characters.junior.player.diplodocus())
+    playerDinos.push(game.data.characters.adult.player.diplodocus())
 
-    enemyDinos.push(game.characters.junior.enemy.diplodocus())
-    enemyDinos.push(game.characters.junior.enemy.diplodocus())
-    enemyDinos.push(game.characters.junior.enemy.diplodocus())
-    enemyDinos.push(game.characters.junior.enemy.diplodocus())
-    enemyDinos.push(game.characters.junior.enemy.diplodocus())
-    enemyDinos.push(game.characters.junior.enemy.diplodocus())
-    enemyDinos.push(game.characters.junior.enemy.diplodocus())
-    enemyDinos.push(game.characters.junior.enemy.diplodocus())
-    enemyDinos.push(game.characters.junior.enemy.diplodocus())
-    enemyDinos.push(game.characters.junior.enemy.diplodocus())
+    enemyDinos.push(game.data.characters.junior.enemy.diplodocus())
+    enemyDinos.push(game.data.characters.junior.enemy.diplodocus())
+    enemyDinos.push(game.data.characters.junior.enemy.diplodocus())
+    enemyDinos.push(game.data.characters.junior.enemy.diplodocus())
+    enemyDinos.push(game.data.characters.junior.enemy.diplodocus())
+    enemyDinos.push(game.data.characters.junior.enemy.diplodocus())
+    enemyDinos.push(game.data.characters.junior.enemy.diplodocus())
+    enemyDinos.push(game.data.characters.junior.enemy.diplodocus())
+    enemyDinos.push(game.data.characters.junior.enemy.diplodocus())
+    enemyDinos.push(game.data.characters.junior.enemy.diplodocus())
 
     game.continueUpdate();
 }
@@ -241,8 +242,6 @@ function update() {
     tileset.grass.draw(ctx, 20);
     backgrounds.cave1.drawDynamic(ctx);
     backgrounds.cave2.drawDynamic(ctx);
-
-    //sprites.victory.draw(ctxUI);
 
     playerDinos.forEach(dino => dino.draw(ctx));
     enemyDinos.forEach(dino => dino.draw(ctx));
@@ -278,7 +277,6 @@ function fixedUpdate() {
                     dino.lastAttackTime = now;
                     console.log("Player is attacking, Enemy hp: " + enemyDinos[0].hp);
                     if (enemyDinos[0].hp <= 0) {
-                        game.fightStatus = false;
                         dino.setState("walking");
                     }
                 }
@@ -296,7 +294,6 @@ function fixedUpdate() {
                     dino.lastAttackTime = now;
                     console.log("Enemy is attacking, Player hp: " + playerDinos[0].hp);
                     if (playerDinos[0].hp <= 0) {
-                        game.fightStatus = false;
                         dino.setState("walking");
                     }
                 }
