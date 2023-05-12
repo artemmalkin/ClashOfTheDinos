@@ -132,7 +132,6 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phon
         if (event.which === 1) {
             mouse.x = Math.floor((event.clientX - mouse.offset.x) / canvas.offsetWidth * canvas.width);
             mouse.y = Math.floor((event.clientY - mouse.offset.y) / canvas.offsetHeight * canvas.height);
-            console.log(mouse.x, mouse.y)
             mouse.isDown = false;
 
             mouse.end.x = mouse.x;
@@ -149,11 +148,11 @@ playerDinos = [];
 enemyDinos = [];
 
 function checkCollisions() {
-    if (enemyDinos.length > 0) {
+/*    if (enemyDinos.length > 0) {*/
         playerDinos.forEach(dino => {
             let dinoIndex = playerDinos.indexOf(dino)
 
-            if (dinoIndex === 0) {
+            if (dinoIndex === 0 && enemyDinos.length > 0) {
                 // If the dinosaur is first
                 const dinoPlayerCollision = playerDinos[0].collision();
                 const dinoEnemyCollision = enemyDinos[0].collision();
@@ -166,24 +165,28 @@ function checkCollisions() {
                     playerDinos[0].setState("walking");
                     enemyDinos[0].setState("walking");
                 }
-            } else {
+            } else if (dinoIndex !== 0) {
                 // If not the first one, we check if it has reached the dinosaur walking in front of it
                 const dinoPlayerCollision = playerDinos[dinoIndex].collision();
                 const NextDinoPlayerCollision = playerDinos[dinoIndex - 1].collision();
                 if (NextDinoPlayerCollision.x < dinoPlayerCollision.x + dinoPlayerCollision.width) {
                     // If reached - stop him
                     dino.setState("standing");
+                    dino.speed = playerDinos[dinoIndex - 1].speed < dino.speed ? playerDinos[dinoIndex - 1].speed : dino.speed;
                 } else {
                     // If he didn't make it, let him move on.
                     dino.setState("walking");
+                    if (NextDinoPlayerCollision.x > dinoPlayerCollision.x + dinoPlayerCollision.width * 1.2) {
+                        dino.speed = dino.originalSpeed;
+                    }
                 }
             }
         });
-    } else {
+/*    } else {
         playerDinos.forEach(dino => dino.setState("walking"))
-    }
+    }*/
 
-    if (playerDinos.length > 0) {
+/*    if (playerDinos.length > 0) {*/
         enemyDinos.forEach(dino => {
             let dinoIndex = enemyDinos.indexOf(dino)
 
@@ -194,23 +197,27 @@ function checkCollisions() {
                 if (dinoEnemyCollision.x < nextDinoEnemyCollision.x + nextDinoEnemyCollision.width) {
                     // If he reached - stop him
                     dino.setState("standing");
+                    dino.speed = enemyDinos[dinoIndex - 1].speed < dino.speed ? enemyDinos[dinoIndex - 1].speed : dino.speed;
                 } else {
                     // If he didn't make it, let him move on.
                     dino.setState("walking");
+                    if (nextDinoEnemyCollision.x > dinoEnemyCollision.x + dinoEnemyCollision.width * 1.2) {
+                        dino.speed = dino.originalSpeed;
+                    }
                 }
             }
         });
-    } else {
+/*    } else {
         enemyDinos.forEach(dino => dino.setState("walking"))
-    }
+    }*/
     
 }
 
 
 function startGame() {
     // init sprites
-    sprites.dinoItemActive = new spriteImage(resources.diplodocus_p, 64, 64, 8, 0, -180, 750, 8)
-    sprites.dinoItemDisactive = new spriteImage(resources.diplodocus_p, 64, 64, 8, 1, -180, 750, 8)
+    sprites.dinoItemActive = () => new spriteImage(resources.diplodocus_p, 64, 64, 8, 0, -190, -190, 8);
+    sprites.dinoItemDisactive = () => new spriteImage(resources.diplodocus_p, 64, 64, 8, 1, -190, -190, 8);
 
     sprites.dinoItemDiplodocus = new spriteImage(resources.diplodocus_p, 26, 26, 0.9, 0.6, 0, 300, 7)
 
@@ -271,7 +278,11 @@ function startGame() {
     }
 
     // init ui
-    ui.objects = [new Button(sprites.dinoItemActive, sprites.dinoItemDisactive, sprites.dinoItemDisactive, 125, 135, 10, 930, () => playerDinos.push(game.data.characters.junior.player.diplodocus()))]
+
+    ui.objects = [
+        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 10, 930, () => playerDinos.push(game.data.characters.junior.player.diplodocus())),
+        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 135, 930, () => playerDinos.push(game.data.characters.subadult.player.diplodocus()))
+    ]
     game.userInterfaces.push(ui);
     game.drawUI(ctxUI);
 

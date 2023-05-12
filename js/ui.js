@@ -89,6 +89,12 @@ class Button {
         this.state = 1; // 0 - disabled, 1 - normal, 2 - pressed
         this.action = action;
         this.isActive = true;
+
+
+        this.pressedSprite.x += this.position.x;
+        this.pressedSprite.y += this.position.y;
+        this.disabledSprite.x += this.position.x;
+        this.disabledSprite.y += this.position.y;
     }
 
     draw(ctx) {

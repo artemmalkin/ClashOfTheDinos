@@ -18,6 +18,7 @@
         this.states = states
         this.state = "";
 
+        this.originalSpeed = speed;
         this.speed = speed;
         this.hp = hp;
         this.attackDamage = attackDamage;
