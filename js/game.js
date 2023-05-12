@@ -313,7 +313,7 @@ function fixedUpdate() {
         game.lastUpdateTime = now;
 
         if (mouse.isDown) {
-            game.cameraWorldPosition.x += mouse.x > window.innerWidth * 0.5 ? 10 : -10;
+            game.cameraWorldPosition.x += mouse.x > canvas.width * 0.5 ? 10 : -10;
 
             if (game.cameraWorldPosition.x < 0) {
                 game.cameraWorldPosition.x = 0
