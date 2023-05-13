@@ -146,6 +146,7 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phon
 
 playerDinos = [];
 enemyDinos = [];
+diedDinos = [];
 
 function checkCollisions() {
 /*    if (enemyDinos.length > 0) {*/
@@ -158,8 +159,16 @@ function checkCollisions() {
                 const dinoEnemyCollision = enemyDinos[0].collision();
                 if (dinoEnemyCollision.x < dinoPlayerCollision.x + dinoPlayerCollision.width) {
                     // If it reaches the enemy's dinosaur - Fight Mode
-                    playerDinos[0].setState("attacking");
-                    enemyDinos[0].setState("attacking");
+                    if (playerDinos[0].state !== "died") {
+                        if (playerDinos[0].setState("attacking")) {
+                            playerDinos[0].lastAttackTime = Date.now();
+                        }
+                    }
+                    if (enemyDinos[0].state !== "died") {
+                        if (enemyDinos[0].setState("attacking")) {
+                            enemyDinos[0].lastAttackTime = Date.now();
+                        }
+                    }
                 } else {
                     // If he didn't make it, let him move on.
                     playerDinos[0].setState("walking");
@@ -235,19 +244,22 @@ function startGame() {
 
     game.data.characterStates = {
         "diplodocus": {
-            "walking": { "frameRow": 4, "framesCount": 6, "frameDuration": 6 },
-            "attacking": { "frameRow": 12, "framesCount": 7, "frameDuration": 6 },
-            "standing": { "frameRow": 0, "framesCount": 3, "frameDuration": 6 }
+            "walking": { "frameRow": 4, "framesCount": 6, "frameDuration": 6, "isLoop": true },
+            "attacking": { "frameRow": 12, "framesCount": 7, "frameDuration": 6, "isLoop": true  },
+            "standing": { "frameRow": 0, "framesCount": 3, "frameDuration": 6, "isLoop": true },
+            "died": { "frameRow": 1, "framesCount": 4, "frameDuration": 36, "isLoop": false }
         },
         "diplodocusSub": {
-            "walking": { "frameRow": 4, "framesCount": 6, "frameDuration": 8 },
-            "attacking": { "frameRow": 12, "framesCount": 7, "frameDuration": 8 },
-            "standing": { "frameRow": 0, "framesCount": 3, "frameDuration": 8 }
+            "walking": { "frameRow": 4, "framesCount": 6, "frameDuration": 8, "isLoop": true  },
+            "attacking": { "frameRow": 12, "framesCount": 7, "frameDuration": 8, "isLoop": true  },
+            "standing": { "frameRow": 0, "framesCount": 3, "frameDuration": 8, "isLoop": true },
+            "died": { "frameRow": 1, "framesCount": 4, "frameDuration": 36, "isLoop": false }
         },
         "diplodocusAdult": {
-            "walking": { "frameRow": 4, "framesCount": 6, "frameDuration": 12 },
-            "attacking": { "frameRow": 12, "framesCount": 7, "frameDuration": 12 },
-            "standing": { "frameRow": 0, "framesCount": 3, "frameDuration": 12 }
+            "walking": { "frameRow": 4, "framesCount": 6, "frameDuration": 12, "isLoop": true  },
+            "attacking": { "frameRow": 12, "framesCount": 7, "frameDuration": 12, "isLoop": true  },
+            "standing": { "frameRow": 0, "framesCount": 3, "frameDuration": 12, "isLoop": true },
+            "died": { "frameRow": 1, "framesCount": 4, "frameDuration": 36, "isLoop": false }
         },
     }
     game.data.characters = {
@@ -311,6 +323,7 @@ function update() {
 
     playerDinos.forEach(dino => dino.draw(ctx));
     enemyDinos.forEach(dino => dino.draw(ctx));
+    diedDinos.forEach(dino => dino.draw(ctx));
 
     fixedUpdate()
     if (game.status !== -1) {
@@ -332,19 +345,29 @@ function fixedUpdate() {
                 game.cameraWorldPosition.x = canvas.width * 1.5
             }
         }
-
+        diedDinos.forEach(dino => {
+            if (dino.hp <= 0 && dino.currentFrame === dino.framesCount - 1) {
+                diedDinos.splice(diedDinos.indexOf(dino), 1);
+            }
+        })
         playerDinos.forEach(dino => {
             if (dino.hp <= 0) {
+                dino.setState("died");
+                diedDinos.push(dino);
                 playerDinos.splice(playerDinos.indexOf(dino), 1);
             }
             if (dino.state === "attacking") {
-                if (now - dino.lastAttackTime > dino.attackDuration) {
-                    enemyDinos[0].hp -= dino.attackDamage;
-                    dino.lastAttackTime = now;
-                    console.log("Player is attacking, Enemy hp: " + enemyDinos[0].hp);
-                    if (enemyDinos[0].hp <= 0) {
-                        dino.setState("walking");
+                if (enemyDinos.length > 0) {
+                    if (now - dino.lastAttackTime > dino.attackDuration) {
+                        enemyDinos[0].hp -= dino.attackDamage;
+                        dino.lastAttackTime = now;
+                        console.log("Player is attacking, Enemy hp: " + enemyDinos[0].hp);
+                        if (enemyDinos[0].hp <= 0) {
+                            dino.setState("walking");
+                        }
                     }
+                } else {
+                    dino.setState("walking");
                 }
             }
             dino.x += dino.state === "walking" ? dino.speed : 0;
@@ -352,16 +375,22 @@ function fixedUpdate() {
 
         enemyDinos.forEach(dino => {
             if (dino.hp <= 0) {
+                dino.setState("died");
+                diedDinos.push(dino);
                 enemyDinos.splice(enemyDinos.indexOf(dino), 1);
             }
             if (dino.state === "attacking") {
-                if (now - dino.lastAttackTime > dino.attackDuration) {
-                    playerDinos[0].hp -= dino.attackDamage;
-                    dino.lastAttackTime = now;
-                    console.log("Enemy is attacking, Player hp: " + playerDinos[0].hp);
-                    if (playerDinos[0].hp <= 0) {
-                        dino.setState("walking");
+                if (playerDinos.length > 0) {
+                    if (now - dino.lastAttackTime > dino.attackDuration) {
+                        playerDinos[0].hp -= dino.attackDamage;
+                        dino.lastAttackTime = now;
+                        console.log("Enemy is attacking, Player hp: " + playerDinos[0].hp);
+                        if (playerDinos[0].hp <= 0) {
+                            dino.setState("walking");
+                        }
                     }
+                } else {
+                    dino.setState("walking");
                 }
             }
             dino.x += dino.state === "walking" ? -dino.speed : 0;

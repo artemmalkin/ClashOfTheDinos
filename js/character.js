@@ -28,6 +28,7 @@
         this.currentFrame = 0;
         this.lastUpdateTime = 0;
         this.frameDuration = states.frameDuration// * game.frameDuration; // время, которое каждый кадр должен оставаться на экране (в миллисекундах)
+        this.isLoop = true;
 
         this.setState(this.state);
     }
@@ -38,14 +39,18 @@
             this.frameRow = this.states[stateName].frameRow;
             this.framesCount = this.states[stateName].framesCount;
             this.frameDuration = this.states[stateName].frameDuration;
+            this.isLoop = this.states[stateName].isLoop;
             this.state = stateName;
+
+            return true;
         }
+        return false;
     }
 
     draw(ctx) {
         const now = Date.now();
         if (now - this.lastUpdateTime > this.frameDuration * game.frameDuration) {
-            this.currentFrame = (this.currentFrame + 1) % this.framesCount;
+            this.currentFrame = this.isLoop ? (this.currentFrame + 1) % this.framesCount : this.currentFrame === this.framesCount - 1 ? this.currentFrame : this.currentFrame + 1;
             this.lastUpdateTime = now;
         }
 
