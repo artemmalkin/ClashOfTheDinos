@@ -189,6 +189,13 @@ function checkCollisions() {
                         dino.speed = dino.originalSpeed;
                     }
                 }
+            } else {
+                // Check tha last one for the reached the enemy spawnpoint - attacking
+                const dinoPlayerCollision = playerDinos[0].collision();
+                if (dinoPlayerCollision.x + dinoPlayerCollision.width > game.data.spawnpoint.enemy.x - game.cameraWorldPosition.x) {
+                    playerDinos[0].isReachedBase = true;
+                    playerDinos[0].setState("attacking");
+                }
             }
         });
 /*    } else {
@@ -214,6 +221,13 @@ function checkCollisions() {
                         dino.speed = dino.originalSpeed;
                     }
                 }
+            } else {
+                // Check tha last one for the reached the player spawnpoint - attacking
+                const dinoEnemyCollision = enemyDinos[0].collision();
+                if (dinoEnemyCollision.x < game.data.spawnpoint.player.x - game.cameraWorldPosition.x) {
+                    enemyDinos[0].isReachedBase = true;
+                    enemyDinos[0].setState("attacking");
+                }
             }
         });
 /*    } else {
@@ -235,7 +249,7 @@ function startGame() {
     backgrounds.cave1 = new BackgroundImage(resources.background, 320, 180, 8, 0, 0);
     backgrounds.cave2 = new BackgroundImage(resources.background, 320, 180, 12, canvas.width * 1.5, 0);
 
-    // init data
+    // init data // TODO Base attaking hp
     game.data.spawnpoint = {
         "player": { "x": 180, "y": 620 },
         "enemy": { "x": 4100, "y": 620 }
@@ -337,7 +351,7 @@ function fixedUpdate() {
         game.lastUpdateTime = now;
 
         if (mouse.isDown) {
-            game.cameraWorldPosition.x += mouse.x > canvas.width * 0.5 ? 10 : -10;
+            game.cameraWorldPosition.x += mouse.x > canvas.width * 0.5 ? 12 : -12;
 
             if (game.cameraWorldPosition.x < 0) {
                 game.cameraWorldPosition.x = 0
@@ -366,7 +380,7 @@ function fixedUpdate() {
                             dino.setState("walking");
                         }
                     }
-                } else {
+                } else if (!dino.isReachedBase) {
                     dino.setState("walking");
                 }
             }
@@ -389,7 +403,7 @@ function fixedUpdate() {
                             dino.setState("walking");
                         }
                     }
-                } else {
+                } else if (!dino.isReachedBase) {
                     dino.setState("walking");
                 }
             }

@@ -13,6 +13,7 @@
         this.scaledFrameHeight = this.frameHeight * this.scale;
         this.PositionRelativeCamera = () => ({ "x": this.x - game.cameraWorldPosition.x, "y": this.y - game.cameraWorldPosition.y });
 
+        this.isReachedBase = false;
         this.isEnemy = isEnemy;
         this.collision = () => ({ "x": collisionX * this.scale + this.PositionRelativeCamera().x, "width": collisionWidth * this.scale });
         this.states = states
