@@ -7,7 +7,6 @@ class Game {
         this.originalFrameDuration = this.frameDuration;
 
         this.data = {};
-        this.userInterfaces = [];
     }
 
     pause() {
@@ -37,13 +36,18 @@ class Game {
 }
 
 let game = new Game();
-let ui = new UserInterface();
+
+let mouse = new Mouse(canvasUI);
+
+let UIController = new UIManager();
+let playingUI = new UserInterface(canvasUI, mouse, UIController);
+UIController.userInterfaces.push(playingUI);
 
 let sprites = {};
 let backgrounds = {};
 let tileset = {};
 
-let mouse = {
+/*{
     "offsetFunction": () => {
         return {
             "x": (window.innerWidth - canvas.offsetWidth) / 2, "y": (window.innerHeight - canvas.offsetHeight) / 2
@@ -142,7 +146,7 @@ if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phon
             game.drawUI(ctxUI);
         }
     });
-}
+}*/
 
 playerDinos = [];
 enemyDinos = [];
@@ -224,7 +228,7 @@ enemyDinos.forEach(dino => {
         if (dinoEnemyCollision.x < game.data.spawnpoint.player.x - game.cameraWorldPosition.x) {
             enemyDinos[0].isReachedBase = true;
             if (enemyDinos[0].setState("attacking")) {
-                playerDinos[0].lastAttackTime = Date.now();
+                enemyDinos[0].lastAttackTime = Date.now();
             }
         }
     }
@@ -299,12 +303,13 @@ function startGame() {
 
     // init ui
 
-    ui.objects = [
+    playingUI.components = [
         new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 10, 930, () => playerDinos.push(game.data.characters.junior.player.diplodocus())),
-        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 135, 930, () => playerDinos.push(game.data.characters.subadult.player.diplodocus()))
+        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 165, 930, () => playerDinos.push(game.data.characters.subadult.player.diplodocus())),
+        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 325, 930, () => playerDinos.push(game.data.characters.adult.player.diplodocus()))
     ]
-    game.userInterfaces.push(ui);
-    game.drawUI(ctxUI);
+    UIController.drawUI();
+
 
     // temp
 
@@ -345,7 +350,7 @@ function fixedUpdate() {
         game.lastUpdateTime = now;
 
         if (mouse.isDown) {
-            game.cameraWorldPosition.x += mouse.x > canvas.width * 0.5 ? 12 : -12;
+            game.cameraWorldPosition.x += mouse.position.x > canvas.width * 0.5 ? 12 : -12;
 
             if (game.cameraWorldPosition.x < 0) {
                 game.cameraWorldPosition.x = 0

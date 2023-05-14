@@ -49,19 +49,16 @@
         resizeCanvas();
 
         function resizeCanvas() {
-            //let newWidth = window.innerWidth;
-            //let newHeight = window.innerHeight;
-
             canvas.width = 1920;
             canvas.height = 1080;
 
             canvasUI.width = canvas.width;
             canvasUI.height = canvas.height;
-
-            mouse.offset = mouse.offsetFunction();
-            game.drawUI(ctxUI);
-            //canvas.width = newWidth > 1280 ? 1280 : newWidth;
-            //canvas.height = newHeight > 720 ? 720 : newHeight;
+            UIController.drawUI();
+            mouse.offset = {
+                "x": (window.innerWidth - canvas.offsetWidth) / 2,
+                "y": (window.innerHeight - canvas.offsetHeight) / 2
+            }
         }
     </script>
 </body>
