@@ -38,6 +38,8 @@ class Game {
 let game = new Game();
 
 let mouse = new Mouse(canvasUI);
+let lastMouseX = 0;
+
 
 let UIController = new UIManager();
 let playingUI = new UserInterface(canvasUI, mouse, UIController);
@@ -46,107 +48,6 @@ UIController.userInterfaces.push(playingUI);
 let sprites = {};
 let backgrounds = {};
 let tileset = {};
-
-/*{
-    "offsetFunction": () => {
-        return {
-            "x": (window.innerWidth - canvas.offsetWidth) / 2, "y": (window.innerHeight - canvas.offsetHeight) / 2
-        }
-    },
-    "offset": {
-        "x": (window.innerWidth - canvas.offsetWidth) / 2, "y": (window.innerHeight - canvas.offsetHeight) / 2
-    },
-    "isDown": false,
-    "x": 0, "y": 0,
-    "start": { "x": 0, "y": 0 },
-    "end": { "x": 0, "y": 0 }
-};
-
-if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini/i
-    .test(navigator.userAgent)) {
-    document.addEventListener("touchstart", function (event) {
-        const touch = event.touches[0];
-        mouse.x = Math.floor((touch.clientX - mouse.offset.x) / canvas.offsetWidth * canvas.width);
-        mouse.y = Math.floor((touch.clientY - mouse.offset.y) / canvas.offsetHeight * canvas.height);
-        mouse.isDown = true;
-
-        mouse.start.x = mouse.x;
-        mouse.start.y = mouse.y;
-        mouse.end.x = mouse.x;
-        mouse.end.y = mouse.y;
-
-        game.userInterfaces.forEach(UI => { UI.handlePress(); })
-        game.drawUI(ctxUI);
-    });
-
-    document.addEventListener("touchmove", function (event) {
-        if (mouse.isDown) {
-            const touch = event.touches[0];
-            mouse.x = Math.floor((touch.clientX - mouse.offset.x) / canvas.offsetWidth * canvas.width);
-            mouse.y = Math.floor((touch.clientY - mouse.offset.y) / canvas.offsetHeight * canvas.height);
-
-            mouse.end.x = mouse.x;
-            mouse.end.y = mouse.y;
-
-            game.userInterfaces.forEach(UI => { UI.handleDrag(); })
-            game.drawUI(ctxUI);
-        }
-    });
-
-    document.addEventListener("touchend", function (event) {
-        mouse.isDown = false;
-
-        game.userInterfaces.forEach(UI => { UI.handleClick(); })
-        game.userInterfaces.forEach(UI => { UI.handlePress(); })
-        game.drawUI(ctxUI);
-    });
-} else {
-    document.addEventListener("mousedown", function (event) {
-        // Start pressing the left button on the mouse - set the MouseDown flag to true
-        if (event.which === 1) {
-            mouse.x = Math.floor((event.clientX - mouse.offset.x) / canvas.offsetWidth * canvas.width);
-            mouse.y = Math.floor((event.clientY - mouse.offset.y) / canvas.offsetHeight * canvas.height);
-            mouse.isDown = true;
-
-            mouse.start.x = mouse.x;
-            mouse.start.y = mouse.y;
-
-            game.userInterfaces.forEach(UI => { UI.handlePress(); })
-            game.drawUI(ctxUI);
-        }
-    });
-
-    document.addEventListener("mousemove", function (event) {
-        // Move cursor while holding LMB
-        if (mouse.isDown) {
-            mouse.x = Math.floor((event.clientX - mouse.offset.x) / canvas.offsetWidth * canvas.width);
-            mouse.y = Math.floor((event.clientY - mouse.offset.y) / canvas.offsetHeight * canvas.height);
-
-            mouse.end.x = mouse.x;
-            mouse.end.y = mouse.y;
-
-            game.userInterfaces.forEach(UI => { UI.handleDrag(); })
-            game.userInterfaces.forEach(UI => { UI.handlePress(); })
-            game.drawUI(ctxUI);
-        }
-    });
-
-    document.addEventListener("mouseup", function (event) {
-        // Releasing the cursor - set the isMouseDown flag to false
-        if (event.which === 1) {
-            mouse.x = Math.floor((event.clientX - mouse.offset.x) / canvas.offsetWidth * canvas.width);
-            mouse.y = Math.floor((event.clientY - mouse.offset.y) / canvas.offsetHeight * canvas.height);
-            mouse.isDown = false;
-
-            mouse.end.x = mouse.x;
-            mouse.end.y = mouse.y;
-            
-            game.userInterfaces.forEach(UI => { UI.handleClick(); })
-            game.userInterfaces.forEach(UI => { UI.handlePress(); })
-            game.drawUI(ctxUI);
-        }
-    });
-}*/
 
 playerDinos = [];
 enemyDinos = [];
@@ -348,16 +249,29 @@ function fixedUpdate() {
     const now = Date.now();
     if (now - game.lastUpdateTime > game.frameDuration) {
         game.lastUpdateTime = now;
-
+        
         if (mouse.isDown) {
-            game.cameraWorldPosition.x += mouse.position.x > canvas.width * 0.5 ? 12 : -12;
+            game.cameraWorldPosition.x -= mouse.position.x - mouse.position.lastFixedUpdate.x;
 
-            if (game.cameraWorldPosition.x < 0) {
-                game.cameraWorldPosition.x = 0
-            } else if (game.cameraWorldPosition.x > canvas.width * 1.5) {
-                game.cameraWorldPosition.x = canvas.width * 1.5
+            mouse.speed = Math.floor((mouse.position.x - mouse.position.lastFixedUpdate.x) / 10);
+
+            mouse.position.lastFixedUpdate.x = mouse.position.x;
+            mouse.position.lastFixedUpdate.y = mouse.position.y;
+        } else {
+            if (Math.abs(mouse.speed) > 0) {
+                game.cameraWorldPosition.x -= mouse.speed;
+                mouse.speed -= Math.floor(mouse.speed / 100)
             }
         }
+
+        if (game.cameraWorldPosition.x < 0) {
+            game.cameraWorldPosition.x = 0;
+            mouse.speed = 0;
+        } else if (game.cameraWorldPosition.x > 2880) {
+            game.cameraWorldPosition.x = 2880;
+            mouse.speed = 0;
+        }
+
         diedDinos.forEach(dino => {
             if (dino.hp <= 0 && dino.currentFrame === dino.framesCount - 1) {
                 diedDinos.splice(diedDinos.indexOf(dino), 1);
