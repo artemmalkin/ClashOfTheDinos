@@ -239,6 +239,28 @@ function update() {
     enemyDinos.forEach(dino => dino.draw(ctx));
     diedDinos.forEach(dino => dino.draw(ctx));
 
+    if (mouse.isDown) {
+        game.cameraWorldPosition.x -= mouse.position.x - mouse.position.lastUpdatePosition.x;
+
+        mouse.speed = Math.floor((mouse.position.x - mouse.position.lastUpdatePosition.x) / 10);
+
+        mouse.position.lastUpdatePosition.x = mouse.position.x;
+        mouse.position.lastUpdatePosition.y = mouse.position.y;
+    } else {
+        if (Math.abs(mouse.speed) > 0) {
+            game.cameraWorldPosition.x -= mouse.speed;
+            mouse.speed -= Math.floor(mouse.speed / 100)
+        }
+    }
+
+    if (game.cameraWorldPosition.x < 0) {
+        game.cameraWorldPosition.x = 0;
+        mouse.speed = 0;
+    } else if (game.cameraWorldPosition.x > 2880) {
+        game.cameraWorldPosition.x = 2880;
+        mouse.speed = 0;
+    }
+
     fixedUpdate()
     if (game.status !== -1) {
         requestAnimationFrame(update);
@@ -249,28 +271,6 @@ function fixedUpdate() {
     const now = Date.now();
     if (now - game.lastUpdateTime > game.frameDuration) {
         game.lastUpdateTime = now;
-        
-        if (mouse.isDown) {
-            game.cameraWorldPosition.x -= mouse.position.x - mouse.position.lastFixedUpdate.x;
-
-            mouse.speed = Math.floor((mouse.position.x - mouse.position.lastFixedUpdate.x) / 10);
-
-            mouse.position.lastFixedUpdate.x = mouse.position.x;
-            mouse.position.lastFixedUpdate.y = mouse.position.y;
-        } else {
-            if (Math.abs(mouse.speed) > 0) {
-                game.cameraWorldPosition.x -= mouse.speed;
-                mouse.speed -= Math.floor(mouse.speed / 100)
-            }
-        }
-
-        if (game.cameraWorldPosition.x < 0) {
-            game.cameraWorldPosition.x = 0;
-            mouse.speed = 0;
-        } else if (game.cameraWorldPosition.x > 2880) {
-            game.cameraWorldPosition.x = 2880;
-            mouse.speed = 0;
-        }
 
         diedDinos.forEach(dino => {
             if (dino.hp <= 0 && dino.currentFrame === dino.framesCount - 1) {

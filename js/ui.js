@@ -2,7 +2,7 @@ class Mouse {
     constructor(canvas) {
         this.position = {
             "x": 0, "y": 0,
-            "lastFixedUpdate": { "x": 0, "y": 0 }
+            "lastUpdatePosition": { "x": 0, "y": 0 }
         };
         this.speed = 0;
         this.isDown = false;
@@ -34,8 +34,8 @@ class Mouse {
         if (event.which === 1) {
             mouse.setPosition(event.offsetX, event.offsetY)
             mouse.isDown = true;
-            mouse.position.lastFixedUpdate.x = mouse.position.x;
-            mouse.position.lastFixedUpdate.y = mouse.position.y;
+            mouse.position.lastUpdatePosition.x = mouse.position.x;
+            mouse.position.lastUpdatePosition.y = mouse.position.y;
         }
     }
 
@@ -56,8 +56,8 @@ class Mouse {
         const touch = event.touches[0];
         mouse.setPosition(touch.clientX - mouse.offset.x, touch.clientY - mouse.offset.y);
         mouse.isDown = true;
-        mouse.position.lastFixedUpdate.x = mouse.position.x;
-        mouse.position.lastFixedUpdate.y = mouse.position.y;
+        mouse.position.lastUpdatePosition.x = mouse.position.x;
+        mouse.position.lastUpdatePosition.y = mouse.position.y;
     }
 
     touchMove(event) {
