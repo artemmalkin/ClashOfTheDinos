@@ -144,15 +144,15 @@ function startGame() {
 
     sprites.dinoItemDiplodocus = new spriteImage(resources.diplodocus_p, 26, 26, 0.9, 0.6, 0, 300, 7)
 
-    tileset.grass = new PatternImage(resources.tileset, 45, 16, 6, 0, 6, 0, canvas.height - 86, 20, "x");
+    tileset.grass = new PatternImage(resources.tileset, 40, 16, 13, 0, 6, 0, 872, 20, "x");
     backgrounds.main = new BackgroundImage(resources.background, 320, 180, 9, 0, 0, 1.2);
-    backgrounds.cave1 = new BackgroundImage(resources.background, 320, 180, 8, 0, 0);
-    backgrounds.cave2 = new BackgroundImage(resources.background, 320, 180, 12, canvas.width * 1.5, 0);
+    backgrounds.cave1 = new BackgroundImage(resources.background, 320, 180, 8, -203, -290, 1.2);
+    backgrounds.cave2 = new BackgroundImage(resources.background, 320, 180, 12, 2700, -310, 1.2);
 
     // init data // TODO Base attaking hp
     game.data.spawnpoint = {
-        "player": { "x": 180, "y": 620, "hp": 1000 },
-        "enemy": { "x": 4200, "y": 620, "hp": 1000 }
+        "player": { "x": 180, "y": 510, "hp": 1000 },
+        "enemy": { "x": 4200, "y": 510, "hp": 1000 }
     };
 
     game.data.characterStates = {
@@ -205,9 +205,11 @@ function startGame() {
     // init ui
 
     playingUI.components = [
-        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 10, 930, () => playerDinos.push(game.data.characters.junior.player.diplodocus())),
-        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 165, 930, () => playerDinos.push(game.data.characters.subadult.player.diplodocus())),
-        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 325, 930, () => playerDinos.push(game.data.characters.adult.player.diplodocus()))
+        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 10, 940, () => playerDinos.push(game.data.characters.junior.player.diplodocus())),
+        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 165, 940, () => playerDinos.push(game.data.characters.subadult.player.diplodocus())),
+        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 325, 940, () => playerDinos.push(game.data.characters.adult.player.diplodocus())),
+        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 485, 940, () => playerDinos.push(game.data.characters.subadult.player.diplodocus())),
+        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 645, 940, () => playerDinos.push(game.data.characters.subadult.player.diplodocus())),
     ]
     UIController.drawUI();
 
@@ -231,7 +233,7 @@ function startGame() {
 function update() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     backgrounds.main.drawDynamic(ctx, 0.1);
-    tileset.grass.draw(ctx, 20);
+    tileset.grass.draw(ctx, 10);
     backgrounds.cave1.drawDynamic(ctx);
     backgrounds.cave2.drawDynamic(ctx);
 
@@ -242,14 +244,21 @@ function update() {
     if (mouse.isDown) {
         game.cameraWorldPosition.x -= mouse.position.x - mouse.position.lastUpdatePosition.x;
 
-        mouse.speed = Math.floor((mouse.position.x - mouse.position.lastUpdatePosition.x) / 10);
-
+        mouse.speed = Math.floor((mouse.position.x - mouse.position.lastUpdatePosition.x) / 3);
+        
         mouse.position.lastUpdatePosition.x = mouse.position.x;
         mouse.position.lastUpdatePosition.y = mouse.position.y;
     } else {
-        if (Math.abs(mouse.speed) > 0) {
+        if (Math.abs(mouse.speed) > 1) {
             game.cameraWorldPosition.x -= mouse.speed;
-            mouse.speed -= Math.floor(mouse.speed / 100)
+            
+            if (mouse.speed > 0) {
+                mouse.speed -= 1
+            } else {
+                mouse.speed += 1
+            }
+            
+            console.log(mouse.speed)
         }
     }
 
@@ -271,7 +280,7 @@ function fixedUpdate() {
     const now = Date.now();
     if (now - game.lastUpdateTime > game.frameDuration) {
         game.lastUpdateTime = now;
-
+        
         diedDinos.forEach(dino => {
             if (dino.hp <= 0 && dino.currentFrame === dino.framesCount - 1) {
                 diedDinos.splice(diedDinos.indexOf(dino), 1);

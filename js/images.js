@@ -6,21 +6,20 @@
         this.frameRow = frameRow;
         this.x = x;
         this.y = y;
+        this.sy = this.frameRow * this.frameHeight;
         this.scale = scale;
+        this.scaledFrameWidth = canvas.width * this.scale;
+        this.scaledFrameHeight = canvas.height * this.scale;
     }
 
     drawDynamic(ctx, speed = 1) {
-        const sy = this.frameRow * this.frameHeight;
-
         ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(this.image, 0, sy, this.frameWidth, this.frameHeight, this.x - game.cameraWorldPosition.x * speed, this.y - game.cameraWorldPosition.y * speed, canvas.width * this.scale, canvas.height * this.scale);
+        ctx.drawImage(this.image, 0, this.sy, this.frameWidth, this.frameHeight, this.x - game.cameraWorldPosition.x * speed, this.y - game.cameraWorldPosition.y * speed, this.scaledFrameWidth, this.scaledFrameHeight);
     }
 
     drawStatic(ctx) {
-        const sy = this.frameRow * this.frameHeight;
-
         ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(this.image, 0, sy, this.frameWidth, this.frameHeight, this.x, this.y, canvas.width * this.scale, canvas.height * this.scale);
+        ctx.drawImage(this.image, 0, this.sy, this.frameWidth, this.frameHeight, this.x, this.y, this.scaledFrameWidth, this.scaledFrameHeight);
     }
 }
 
@@ -33,22 +32,16 @@ class spriteImage {
         this.frameCol = frameCol;
         this.x = x;
         this.y = y;
+        this.sx = this.frameCol * this.frameWidth;
+        this.sy = this.frameRow * this.frameHeight;
         this.scale = scale;
-        this.isActive = true;
-    }
-
-    setActive(status = true) {
-        this.isActive = status;
+        this.scaledFrameWidth = this.frameWidth * this.scale;
+        this.scaledFrameHeight = this.frameHeight * this.scale;
     }
 
     draw(ctx) {
-        if (this.isActive) {
-            const sx = this.frameCol * this.frameWidth;
-            const sy = this.frameRow * this.frameHeight;
-
-            ctx.imageSmoothingEnabled = false;
-            ctx.drawImage(this.image, sx, sy, this.frameWidth, this.frameHeight, this.x, this.y, this.frameWidth * this.scale, this.frameHeight * this.scale);
-        }
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(this.image, this.sx, this.sy, this.frameWidth, this.frameHeight, this.x, this.y, this.scaledFrameWidth, this.scaledFrameHeight);
     }
 }
 
