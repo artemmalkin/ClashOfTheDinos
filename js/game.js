@@ -257,8 +257,6 @@ function update() {
             } else {
                 mouse.speed += 1
             }
-            
-            console.log(mouse.speed)
         }
     }
 
