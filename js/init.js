@@ -34,7 +34,7 @@ function initGame(params) {
 
     // список ресурсов для загрузки
     let resourceUrls = [
-        { "url": './assets/art/ui/victory_ru.png', "filename": "victory", "type": "image" },
+        { "url": './assets/art/ui/ui.png', "filename": "ui", "type": "image" },
         { "url": './assets/art/background/Background.png', "filename": "background", "type": "image"},
         { "url": './assets/art/background/Tileset.png', "filename": "tileset", "type": "image"},
         { "url": './assets/art/dinosaurs/3_Diplodocus/player.png', "filename": "diplodocus_p", "type": "image" },

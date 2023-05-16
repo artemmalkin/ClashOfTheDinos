@@ -27,12 +27,6 @@ class Game {
         this.status = 1;
         requestAnimationFrame(update);
     }
-
-    drawUI(ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        this.userInterfaces.forEach(UI => UI.draw(ctx));
-    }
-
 }
 
 let game = new Game();
@@ -41,7 +35,7 @@ let mouse = new Mouse(canvasUI);
 let lastMouseX = 0;
 
 
-let UIController = new UIManager();
+let UIController = new UIManager(canvasUI, ctxUI);
 let playingUI = new UserInterface(canvasUI, mouse, UIController);
 UIController.userInterfaces.push(playingUI);
 
@@ -49,9 +43,9 @@ let sprites = {};
 let backgrounds = {};
 let tileset = {};
 
-playerDinos = [];
-enemyDinos = [];
-diedDinos = [];
+let playerDinos = [];
+let enemyDinos = [];
+let diedDinos = [];
 
 function checkCollisions() {
 playerDinos.forEach(dino => {
@@ -124,9 +118,9 @@ enemyDinos.forEach(dino => {
             }
         }
     } else {
-        // Check tha last one for the reached the player spawnpoint - attacking
+        // Check the last one for the reached the player spawnpoint - attacking
         const dinoEnemyCollision = enemyDinos[0].collision();
-        if (dinoEnemyCollision.x < game.data.spawnpoint.player.x - game.cameraWorldPosition.x) {
+        if (dinoEnemyCollision.x < game.data.spawnpoint.player.x + 250 - game.cameraWorldPosition.x) {
             enemyDinos[0].isReachedBase = true;
             if (enemyDinos[0].setState("attacking")) {
                 enemyDinos[0].lastAttackTime = Date.now();
@@ -139,7 +133,14 @@ enemyDinos.forEach(dino => {
 
 function startGame() {
     // init sprites
-    sprites.dinoItemActive = () => new spriteImage(resources.diplodocus_p, 64, 64, 8, 0, -190, -190, 8);
+    sprites.home = () => new spriteImage(resources.ui, 18, 18, 0, 2, 0, 0, 5);
+    sprites.replay = () => new spriteImage(resources.ui, 18, 18, 0, 3, 0, 0, 5);
+    sprites.volumeOn = () => new spriteImage(resources.ui, 18, 18, 1, 1, 0, 0, 5);
+    sprites.volumeOff = () => new spriteImage(resources.ui, 18, 18, 1, 2, 0, 0, 5);
+    sprites.up = () => new spriteImage(resources.ui, 18, 18, 0, 4, 0, 0, 7);
+    sprites.pause = () => new spriteImage(resources.ui, 18, 18, 0, 0, 0, 0, 5);
+    sprites.continue = () => new spriteImage(resources.ui, 18, 18, 0, 1, 0, 0, 5);
+    sprites.dinoItemActive = () => new spriteImage(resources.ui, 18, 18, 1, 3, 0, 0, 7);
     sprites.dinoItemDisactive = () => new spriteImage(resources.diplodocus_p, 64, 64, 8, 1, -190, -190, 8);
 
     sprites.dinoItemDiplodocus = new spriteImage(resources.diplodocus_p, 26, 26, 0.9, 0.6, 0, 300, 7)
@@ -149,7 +150,13 @@ function startGame() {
     backgrounds.cave1 = new BackgroundImage(resources.background, 320, 180, 8, -203, -290, 1.2);
     backgrounds.cave2 = new BackgroundImage(resources.background, 320, 180, 12, 2700, -310, 1.2);
 
-    // init data // TODO Base attaking hp
+    // init data
+    playerDinos = [];
+    enemyDinos = [];
+    diedDinos = [];
+
+    game.data.lvl = { "player": 1, "enemy": 1 };
+
     game.data.spawnpoint = {
         "player": { "x": 180, "y": 510, "hp": 1000 },
         "enemy": { "x": 4200, "y": 510, "hp": 1000 }
@@ -205,11 +212,48 @@ function startGame() {
     // init ui
 
     playingUI.components = [
-        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 10, 940, () => playerDinos.push(game.data.characters.junior.player.diplodocus())),
-        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 165, 940, () => playerDinos.push(game.data.characters.subadult.player.diplodocus())),
-        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 325, 940, () => playerDinos.push(game.data.characters.adult.player.diplodocus())),
-        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 485, 940, () => playerDinos.push(game.data.characters.subadult.player.diplodocus())),
-        new Button(sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 125, 135, 645, 940, () => playerDinos.push(game.data.characters.subadult.player.diplodocus())),
+        new Button(true, sprites.up(), sprites.up(), sprites.up(), 115, 115, 800, 940, (button) => {
+            if (game.status === 0) {
+                button.state = 1;
+                game.continue()
+            } else {
+                button.state = 2;
+                game.pause()
+            }
+        }),
+        new Button(false, sprites.home(), sprites.home(), sprites.home(), 90, 90, 790, 10, (button) => {
+
+        }),
+        new Button(false, sprites.replay(), sprites.replay(), sprites.replay(), 90, 90, 1040, 10, (button) => {
+            game.stopUpdate()
+            game = new Game();
+            
+            setTimeout(startGame, "100")
+            
+        }),
+        new Button(false, sprites.volumeOn(), sprites.volumeOff(), sprites.volumeOff(), 90, 90, 915, 120, (button) => {
+            button.state = button.state === 1 ? 2 : 1;
+        }),
+        new Button(true, sprites.pause(), sprites.continue(), sprites.pause(), 90, 90, 915, 10, (button) => {
+            if (game.status === 0) {
+                playingUI.components[1].isActive = false;
+                playingUI.components[2].isActive = false;
+                playingUI.components[3].isActive = false;
+                button.state = 1;
+                game.continue()
+            } else {
+                playingUI.components[1].isActive = true;
+                playingUI.components[2].isActive = true;
+                playingUI.components[3].isActive = true;
+                button.state = 2;
+                game.pause()
+            }
+        }),
+        new Button(true, sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 126, 126, 10, 940, () => playerDinos.push(game.data.characters.junior.player.diplodocus())),
+        new Button(true, sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 126, 126, 165, 940, () => playerDinos.push(game.data.characters.subadult.player.diplodocus())),
+        new Button(true, sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 126, 126, 325, 940, () => playerDinos.push(game.data.characters.adult.player.diplodocus())),
+        new Button(true, sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 126, 126, 485, 940, () => playerDinos.push(game.data.characters.subadult.player.diplodocus())),
+        new Button(true, sprites.dinoItemActive(), sprites.dinoItemDisactive(), sprites.dinoItemActive(), 126, 126, 645, 940, () => playerDinos.push(game.data.characters.subadult.player.diplodocus())),
     ]
     UIController.drawUI();
 

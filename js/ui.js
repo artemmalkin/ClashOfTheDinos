@@ -76,8 +76,8 @@ class Mouse {
 }
 
 class Component {
-    constructor(width = 0, height = 0, x = 0, y = 0) {
-        this.isActive = true;
+    constructor(isActive, width = 0, height = 0, x = 0, y = 0) {
+        this.isActive = isActive;
         this.position = { "x": x, "y": y };
         this.width = width;
         this.height = height;
@@ -105,11 +105,13 @@ class UserInterface {
         this.components.forEach(component => {
             switch (component.constructor) {
                 case Button:
-                    if (component.position.x < this.mouse.position.x && this.mouse.position.x < component.position.x + component.width &&
-                        component.position.y < this.mouse.position.y && this.mouse.position.y < component.position.y + component.height) {
-                        
-                        component.action?.();
-                        this.UIManager.drawUI();
+                    if (component.isActive) {
+                        if (component.position.x < this.mouse.position.x && this.mouse.position.x < component.position.x + component.width &&
+                            component.position.y < this.mouse.position.y && this.mouse.position.y < component.position.y + component.height) {
+
+                            component.action?.(component);
+                            this.UIManager.drawUI();
+                        }
                     }
                     break;
                 default:
@@ -125,18 +127,21 @@ class UserInterface {
 }
 
 class UIManager {
-    constructor(userInterfaces = []) {
-        this.userInterfaces = userInterfaces;
+    constructor(canvas, ctx) {
+        this.userInterfaces = [];
+        this.canvas = canvas;
+        this.ctx = ctx;
     }
 
     drawUI() {
-        this.userInterfaces.forEach(UI => UI.draw(UI.ctx));
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.userInterfaces.forEach(UI => UI.draw(this.ctx));
     }
 }
 
 class Button extends Component {
-    constructor(normalSprite, pressedSprite, disabledSprite, width, height, x, y, action) {
-        super(width, height, x, y)
+    constructor(isActive, normalSprite, pressedSprite, disabledSprite, width, height, x, y, action) {
+        super(isActive, width, height, x, y)
         this.normalSprite = normalSprite;
         this.pressedSprite = pressedSprite;
         this.disabledSprite = disabledSprite;
